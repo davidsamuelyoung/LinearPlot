@@ -19,13 +19,12 @@ Usage:
 
 from setuptools import setup
 
-APP = ['LinearPlot.py']
-DATA_FILES = []
+APP = ['main.py']
+DATA_FILES = ['updater.py', 'LinearPlot.py', 'LinearPlot_git.py']
 OPTIONS = {"packages": ["PIL"]}
 
 setup(
     name="Linear Plot",
-    version="0.1",
     app=APP,
     data_files=DATA_FILES,
     options={'py2app': OPTIONS},
