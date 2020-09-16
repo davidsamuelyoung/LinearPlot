@@ -19,8 +19,8 @@ Usage:
 
 from setuptools import setup
 
-APP = ['main.py']
-DATA_FILES = ['updater.py', 'LinearPlot.py', 'LinearPlot_git.py']
+APP = ['LinearPlot.py']
+DATA_FILES = []
 OPTIONS = {"packages": ["PIL"]}
 
 setup(
