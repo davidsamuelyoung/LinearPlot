@@ -14,6 +14,7 @@ from matplotlib.font_manager import FontProperties
 import matplotlib.font_manager as font_manager
 import numpy as np
 import requests
+import webbrowser
 
 
 # AFTER RELEASE
@@ -232,7 +233,7 @@ class Main:
 
         # Creates the input labels X and Y
         self.input_labels = Frame(self.root, width=390)
-        self.x_label = Label(self.input_labels, text="N Axis", font=self.label_font, width=18)
+        self.x_label = Label(self.input_labels, text="X Axis", font=self.label_font, width=18)
         self.y_label = Label(self.input_labels, text="Y Axis", font=self.label_font, width=14)
 
         # Adds the X and Y labels to the grid
@@ -1133,9 +1134,46 @@ class ScrollFrame(Frame):
         self.canvas.itemconfig(self.canvas_window, width=canvas_width)
 
 
-def check_for_updates():
-    r = requests.get("")
+def start_up():
+    # TODO Check that this works on other macs
+    r = requests.get("https://raw.githubusercontent.com/davidsamuelyoung/LinearPlot/master/latest_version.txt")
+    latest_version_text = r.text.split('\n')
+    latest_version = latest_version_text[0].replace("version=", "")
+    f = open("update_boot_tracker.txt", mode="r+")
+    lines = f.readlines()
+    f.close()
+    with open("update_boot_tracker.txt", mode="w") as f:
+        declines = int(lines[1][9:])
+        if latest_version != current_version():
+            if declines % 2 == 0:
+                message = f"You currently have version: v{current_version()}\n" \
+                          f"The latest version is: v{latest_version}\nChanges:\n"
+                # Limit the number of changes to 3
+                for change in latest_version_text[1:]:
+                    message += f"\u2022 {change}\n"
+                message += f"\nDo you want to update?"
+                root = Tk()
+                root.withdraw()
+                response = messagebox.askyesno(title="Update?", message=message)
+                root.destroy()
+            else:
+                response = False
+
+            if response:
+                # TODO Update this to the actual repo
+                webbrowser.open("https://github.com/davidsamuelyoung/LinearPlot", new=2)
+                lines[0] = f"version={latest_version}\n"
+                lines[1] = "declines=0"
+                f.writelines(lines)
+                f.close()
+            else:
+                # Keeps track of the number of times the user has declined updating the program
+                lines[0] = f"version={latest_version}\n"
+                lines[1] = f"declines={declines + 1}"
+                f.writelines(lines)
+                f.close()
+                Main()
 
 
 if __name__ == '__main__':
-    Main()
+    start_up()
