@@ -38,7 +38,7 @@ import numpy as np
 
 
 def version_number():
-    return "0.01"
+    return "0.02"
 
 
 def significant_figures(value, figs):
