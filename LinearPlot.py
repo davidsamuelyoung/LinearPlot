@@ -1,8 +1,6 @@
 #  Copyright (c) 2020 David Young.
 #  All rights reserved.
 #
-# __version__ = 0.02
-#
 
 from math import log10, floor
 from tkinter import Scrollbar, Frame, Canvas, Label, StringVar, Checkbutton, BooleanVar, Entry, Tk, Menu, filedialog, \
@@ -15,9 +13,6 @@ from matplotlib.figure import Figure
 from matplotlib.font_manager import FontProperties
 import matplotlib.font_manager as font_manager
 import numpy as np
-
-
-# from numpy import array, ones, vstack, dot, linalg, sqrt, cov, mean, asarray, sum
 
 
 # AFTER RELEASE
@@ -35,12 +30,6 @@ import numpy as np
 # TODO Make the How-To-Use page
 # TODO Make about page
 # TODO Decide whether "Save As" should us a cascade or just be part of file_menu
-# TODO Add function to check github if a new version of the program is available
-# TODO Fix custom plot labels remaining when user imports a new graph
-
-
-def version_number():
-    return "0.02"
 
 
 def significant_figures(value, figs):
@@ -1141,6 +1130,3 @@ class ScrollFrame(Frame):
 
 if __name__ == '__main__':
     Main()
-
-    '''xs = np.array([0.450, 0.813, 1.32, 1.877, 2.377, 2.887, 3.427, 4.010])
-    ys = np.array([0.023, 0.046, 0.069, 0.092, 0.115, 0.138, 0.161, 0.184])'''
