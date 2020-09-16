@@ -1,6 +1,8 @@
 #  Copyright (c) 2020 David Young.
 #  All rights reserved.
 #
+# @__version__ = 0.02
+#
 
 from math import log10, floor
 from tkinter import Scrollbar, Frame, Canvas, Label, StringVar, Checkbutton, BooleanVar, Entry, Tk, Menu, filedialog, \
