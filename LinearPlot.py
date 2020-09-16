@@ -238,7 +238,7 @@ class Main:
 
         # Creates the input labels X and Y
         self.input_labels = Frame(self.root, width=390)
-        self.x_label = Label(self.input_labels, text="X Axis", font=self.label_font, width=18)
+        self.x_label = Label(self.input_labels, text="N Axis", font=self.label_font, width=18)
         self.y_label = Label(self.input_labels, text="Y Axis", font=self.label_font, width=14)
 
         # Adds the X and Y labels to the grid
