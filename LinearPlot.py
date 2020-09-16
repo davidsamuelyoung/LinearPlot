@@ -37,6 +37,10 @@ import numpy as np
 # TODO Fix custom plot labels remaining when user imports a new graph
 
 
+def version_number():
+    return "0.01"
+
+
 def significant_figures(value, figs):
     return value if value == 0 else round(value, -int(floor(log10(abs(value)))) + (figs - 1))
 
