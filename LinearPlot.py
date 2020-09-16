@@ -1,7 +1,7 @@
 #  Copyright (c) 2020 David Young.
 #  All rights reserved.
 #
-# __version__ = 0.01
+# __version__ = 0.02
 #
 
 from math import log10, floor
@@ -40,7 +40,7 @@ import numpy as np
 
 
 def version_number():
-    return "0.01"
+    return "0.02"
 
 
 def significant_figures(value, figs):
