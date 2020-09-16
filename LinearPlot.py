@@ -13,6 +13,7 @@ from matplotlib.figure import Figure
 from matplotlib.font_manager import FontProperties
 import matplotlib.font_manager as font_manager
 import numpy as np
+import requests
 
 
 # AFTER RELEASE
@@ -30,6 +31,10 @@ import numpy as np
 # TODO Make the How-To-Use page
 # TODO Make about page
 # TODO Decide whether "Save As" should us a cascade or just be part of file_menu
+
+
+def current_version():
+    return "0.01"
 
 
 def significant_figures(value, figs):
@@ -1126,6 +1131,10 @@ class ScrollFrame(Frame):
         """
         canvas_width = event.width
         self.canvas.itemconfig(self.canvas_window, width=canvas_width)
+
+
+def check_for_updates():
+    r = requests.get("")
 
 
 if __name__ == '__main__':
