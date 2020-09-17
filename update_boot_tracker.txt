@@ -1,2 +1,2 @@
 version=0.02
-declines=3
+declines=5

@@ -15,6 +15,8 @@ import matplotlib.font_manager as font_manager
 import numpy as np
 import requests
 import webbrowser
+import os
+from fractions import Fraction
 
 
 # AFTER RELEASE
@@ -29,9 +31,7 @@ import webbrowser
 #  the inputs by one row
 
 # BEFORE RELEASE
-# TODO Make the How-To-Use page
-# TODO Make about page
-# TODO Decide whether "Save As" should us a cascade or just be part of file_menu
+# None :)
 
 
 def current_version():
@@ -42,12 +42,17 @@ def significant_figures(value, figs):
     return value if value == 0 else round(value, -int(floor(log10(abs(value)))) + (figs - 1))
 
 
-def get_graph_data(x=None, y=None, initial=True, sigfigs=6):
+def get_graph_data(x=None, y=None, initial=True, sigfigs=6, fractions=False):
     if not initial:
         slope, intercept, rvalue, stderr = linregress_custom(x, y)
-        return f'm = {significant_figures(slope, sigfigs)} ± {significant_figures(stderr, sigfigs)}', \
-               f'c = {significant_figures(intercept, sigfigs)}', \
-               f'R\u00b2 = {significant_figures(rvalue, sigfigs)}'
+        if fractions:
+            return f'm = {Fraction(slope).limit_denominator()} ± {Fraction(stderr).limit_denominator()}', \
+                   f'c = {Fraction(intercept).limit_denominator()}', \
+                   f'R\u00b2 = {Fraction(rvalue).limit_denominator()}'
+        else:
+            return f'm = {significant_figures(slope, sigfigs)} ± {significant_figures(stderr, sigfigs)}', \
+                   f'c = {significant_figures(intercept, sigfigs)}', \
+                   f'R\u00b2 = {significant_figures(rvalue, sigfigs)}'
     else:
         return 'm = 0.0 ± 0.0', 'c = 0.0', 'R\u00b2 = 0.0'
 
@@ -163,6 +168,7 @@ def linregress_custom(x_arr, y_arr):
 # noinspection PyMethodMayBeStatic
 class Main:
     def __init__(self):
+        self.using_fractions = False
         self.shown_y = False
         self.shown_x = False
         self.root = Tk()
@@ -338,11 +344,8 @@ class Main:
         self.root.update_idletasks()
         self.root.minsize(self.root.winfo_width(), self.root.winfo_height())
 
-        '''def on_closing():
-            if messagebox.askokcancel("Quit", "Do you want to quit?"):
-                self.root.quit()
-
-        self.root.protocol("WM_DELETE_WINDOW", on_closing)'''
+        # Forces the Linear Plot window to the front of the screen
+        os.system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Linear Plot" to true' ''')
 
         # Runs the window
         self.root.mainloop()
@@ -388,38 +391,193 @@ class Main:
                 self.ready_to_plot = True
                 self.graph_line(self.graph_canvas, self.sub_plot, self.grid_lines.get())
 
-    # INCOMPLETE
+    # COMPLETE
     def make_menu(self):
 
         # Creates and adds the menu cascade for saving the current graph
         file_menu = Menu(self.menubar, tearoff=0)
-        save_menu = Menu(self.menubar, tearoff=0)
-        save_menu.add_command(label="Plain Text File", command=lambda: self.save_graph_data('txt'))
-        save_menu.add_command(label="CSV File", command=lambda: self.save_graph_data('csv'))
-        file_menu.add_cascade(label="Save As", menu=save_menu)
-        # file_menu.add_command(label="Plain Text File", command=lambda: self.save_graph_data('txt'))
-        # file_menu.add_command(label="CSV File", command=lambda: self.save_graph_data('csv'))
+        file_menu.add_command(label="Save as Plain Text File", command=lambda: self.save_graph_data('txt'))
+        file_menu.add_command(label="Save as CSV File", command=lambda: self.save_graph_data('csv'))
         file_menu.add_separator()
         file_menu.add_command(label="Import Graph", command=self.import_graph)
         file_menu.add_separator()
-        file_menu.add_command(label="Screenshot Graph - TBA", command=self.save_fig)
-        # file_menu.add_command(label="Screenshot Results", command=self.save_results)
+        file_menu.add_command(label="Save Image of Graph", command=self.save_fig)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.root.destroy)
         self.menubar.add_cascade(label="File", menu=file_menu)
 
         edit_menu = Menu(self.menubar, tearoff=0)
         edit_menu.add_command(label="Change Font", command=self.change_fonts)
-        edit_menu.add_command(label="Change Graph Title", command=self.change_plot_title)
+        edit_menu.add_command(label="Change Plot Title", command=self.change_plot_title)
         edit_menu.add_command(label="Change Significant Figures of Results", command=self.change_number_of_sigfigs)
+        edit_menu.add_command(label="Use Fractions for Results", command=lambda: self.change_to_fractions(edit_menu))
         self.menubar.add_cascade(label="Edit", menu=edit_menu)
 
         help_menu = Menu(self.menubar, tearoff=0)
-        help_menu.add_command(label="How to Use", command=None)
-        help_menu.add_command(label="About Linear Plot", command=None)
+        help_menu.add_command(label="How to Use", command=self.show_how_to_use)
+        help_menu.add_command(label="Report a Bug/Issue", command=self.report_a_bug)
+        help_menu.add_command(label="Suggest Improvement/Feature",
+                              command=lambda: webbrowser.open("https://github.com/davidsamuelyoung/Linear-Plot/issues"))
+        help_menu.add_command(label="About Linear Plot", command=self.show_about)
         self.menubar.add_cascade(label="Help", menu=help_menu)
 
         self.root.update_idletasks()
+
+    # COMPLETE
+    def show_how_to_use(self):
+        graph_ex = "The graph will only update once two data points have been inputted. " \
+                   "Whenever you complete one of the cells in either the x- or y-column, a new row will be created. " \
+                   "If your data points stop forming a "'straight line the "Best Fit Values" and "Correlation" ' \
+                   'will update to show the estimated '"gradient (m), y-intercept (c), and correlation (R\u00b2). " \
+                   "The gradient will will also have a standard error after the '±'. You are also able to customize " \
+                   "the look of your graph."
+        grid_plot_labels_ex = "Just above the results area there are two check buttons. " \
+                              "One enables/disables the grid lines in your graph, the other enables/disables adding " \
+                              "custom plot labels. The grid line button is self explanatory. However the custom plot " \
+                              "labels requires a little more explanation:\nTo use superscript you must use the '^' " \
+                              "symbol, and use '_' for subscript. "'If your superscript or subscript is longer then ' \
+                              'a single character then use "{yourtext}" '"to encapsulate more than one character.\n\n" \
+                              "You are also able to change the plot title:\n"'In the menu bar click "Edit" > ' \
+                              '"Change Plot Title"... You are also able to use '"superscript and subscript here."
+        fonts_ex = 'You can change the font used in the window by clicking "Edit" > "Change Font". ' \
+                   'A window will open up with all the fonts available at time of release. Click on a font to ' \
+                   'preview it. If you click "Cancel" the window will reset to what ever font you were ' \
+                   'using before opening the font picker.'
+        results_ex = 'To change the number of significant figures shown in the results, click on "Edit" > "Change ' \
+                     'Significant Figures of Results". You can then select a number between 2 and 14 significant ' \
+                     'figures. Clicking on "Use Fractions for Results" will update the results to be quoted in ' \
+                     'fractions. You can revert this by clicking "Use Decimals for Results".'
+        import_ex = 'If you click on "File" > "Import Graph", you can import a set of data points from either ' \
+                    '.txt or .csv. I suggest using this option for plotting a graph because it will save a great ' \
+                    'deal of your time and it currently has less possible bugs.\nYour .txt or .csv must follow this ' \
+                    'format:\n0.01,0.02\n0.03.0.04\n0.05,0.06\n\nSeparate your values with a comma. ' \
+                    'You can also add plot labels at the top of the .txt or .csv, for example:\nX^{2},Y_{i}\n' \
+                    '0.01,0.02\n0.03.0.04\n0.05,0.06'
+        saving_ex = 'To save your graph click "File" > "Save as". Saving your graph works in the reverse of ' \
+                    'importing your graph. It will write a .txt or .csv (your choice) containing the data points ' \
+                    'and plot labels if enabled.\n\nIf you click "File" > "Save Image of Graph", Linear Plot ' \
+                    'will create an image of your current graph (with fonts, labels, title, and the plot itself) ' \
+                    'and save it to a location of your choosing.'
+        warning_ex = 'When you start the application it will do a quick check to github.com to check if a newer ' \
+                     'version of Linear Plot is available. This check will only use a maximum of 18 KB of bandwidth'
+
+        ex_wraplength = 550
+        how_root = Tk()
+        how_root.title(string="How To Use")
+        scroll_frame = ScrollFrame(parent=how_root, width=550, height=400)
+
+        graphing_title = Label(scroll_frame.viewPort, text="Graphing your data points", font="Helvetica 18 bold")
+        graphing_explanation = Label(scroll_frame.viewPort, text=graph_ex, font="Helvetica 14", justify="left",
+                                     wraplength=ex_wraplength)
+
+        customisation_title = Label(scroll_frame.viewPort, text="How to customize your graph", font="Helvetica 16 bold")
+        grid_lines_plot_labels = Label(scroll_frame.viewPort, text="Grid lines and Plot labels:",
+                                       font="Helvetica 14 bold",
+                                       justify="left")
+        grid_labels_explanation = Label(scroll_frame.viewPort, text=grid_plot_labels_ex, font="Helvetica 14",
+                                        justify="left", wraplength=ex_wraplength)
+
+        fonts_label = Label(scroll_frame.viewPort, text="Fonts:", font="Helvetica 14 bold", justify="left")
+        fonts_explanation = Label(scroll_frame.viewPort, text=fonts_ex, font="Helvetica 14", justify="left",
+                                  wraplength=ex_wraplength)
+
+        results_label = Label(scroll_frame.viewPort, text="Adjusting the Results:", font="Helvetica 14 bold",
+                              justify="left")
+        results_explanation = Label(scroll_frame.viewPort, text=results_ex, font="Helvetica 14", justify="left",
+                                    wraplength=ex_wraplength)
+
+        file_title = Label(scroll_frame.viewPort, text="Importing/Saving your Graph", font="Helvetica 18 bold")
+        import_label = Label(scroll_frame.viewPort, text="Importing a Graph:", font="Helvetica 14 bold", justify="left")
+        import_explanation = Label(scroll_frame.viewPort, text=import_ex, font="Helvetica 14", justify="left",
+                                   wraplength=ex_wraplength)
+
+        save_label = Label(scroll_frame.viewPort, text="Saving your graph", font="Helvetica 14 bold", justify="left")
+        save_explanation = Label(scroll_frame.viewPort, text=saving_ex, font="Helvetica 14", justify="left",
+                                 wraplength=ex_wraplength)
+        warning_title = Label(scroll_frame.viewPort, text="Updates", font="Helvetica 16 bold", justify="left",
+                              wraplength=ex_wraplength)
+        warning_label = Label(scroll_frame.viewPort, text=warning_ex, font="Helvetica 14", justify="left",
+                              wraplength=ex_wraplength)
+
+        graphing_title.pack(side="top")
+        graphing_explanation.pack(side="top")
+        customisation_title.pack(side="top")
+        grid_lines_plot_labels.pack(side="top")
+        grid_labels_explanation.pack(side="top")
+        fonts_label.pack(side="top")
+        fonts_explanation.pack(side="top")
+        results_label.pack(side="top")
+        results_explanation.pack(side="top")
+        file_title.pack(side="top")
+        import_label.pack(side="top")
+        import_explanation.pack(side="top")
+        save_label.pack(side="top")
+        save_explanation.pack(side="top")
+        warning_title.pack(side="top")
+        warning_label.pack(side="top", pady=(10, 4))
+        scroll_frame.pack(padx=(5, 0), pady=(0, 5))
+
+        how_root.minsize(ex_wraplength, 400)
+        how_root.resizable(False, False)
+        how_root.mainloop()
+
+    # COMPLETE
+    def show_about(self):
+        about_root = Tk()
+        about_root.title(string="About Linear Plot")
+
+        title_label = Label(about_root, text=f"Linear Plot v{current_version()}", font="Helvetica 20 bold")
+        copyright_label = Label(about_root, text="Copyright  \u00A9  2020  David Young,  All rights reserved.",
+                                font='Helvetica 8')
+        developed_label = Label(about_root, text="Developed by David Young",
+                                font="Helvetica 14")
+        licensed_label = Label(about_root, text="Licensed to UCT Physics Faculty", font="Helvetica 14")
+
+        title_label.grid(row=0, column=0, sticky="n")
+        developed_label.grid(row=1, column=0, sticky="w", pady=(10, 1))
+        licensed_label.grid(row=2, column=0, sticky="w", pady=(1, 5))
+        copyright_label.grid(row=3, column=0, sticky="s")
+
+        about_root.resizable(False, False)
+        about_root.mainloop()
+
+    # COMPLETE
+    def report_a_bug(self):
+        ex = '1. Explain the issue in a few words in the title of the issue\n' \
+             '2. If necessary add a longer explanation of what happened in the body of the issue\n' \
+             '3. Explain what you were doing when the problem appeared (this is the most important part)\n' \
+             '4. Adding a screenshot of what it looks like would also be greatly appreciated'
+
+        def clicked_ok():
+            webbrowser.open("https://github.com/davidsamuelyoung/Linear-Plot/issues")
+
+        def hit_return(event):
+            webbrowser.open("https://github.com/davidsamuelyoung/Linear-Plot/issues")
+
+        bug_root = Tk()
+        bug_root.title(string="Report a Bug")
+
+        title_label = Label(bug_root, text="How to report a bug", font="Helvetica 16 bold")
+
+        explanation_title = Label(bug_root, text='A good explanation of what went wrong will greatly help me '
+                                                 'fix any problems quickly:', font="Helvetica 15",
+                                  wraplength=600, justify="left")
+
+        explanation_label = Label(bug_root, text=ex, font="Helvetica 14", wraplength=600, justify="left")
+
+        cancel_button = Button(bug_root, text="Cancel", command=lambda: bug_root.destroy())
+
+        ok_button = Button(bug_root, text="Take me to the website", command=clicked_ok)
+        bug_root.bind("<Return>", func=hit_return)
+
+        title_label.grid(columnspan=2, sticky="n")
+        explanation_title.grid(row=1, columnspan=2, sticky='w')
+        explanation_label.grid(row=2, columnspan=2, sticky="w")
+        cancel_button.grid(row=3, column=0, pady=(5, 10))
+        ok_button.grid(row=3, column=1, pady=(5, 10))
+
+        bug_root.resizable(False, False)
+        bug_root.mainloop()
 
     # COMPLETE
     def import_graph(self):
@@ -586,7 +744,7 @@ class Main:
             self.graph_line(self.graph_canvas, self.sub_plot, self.grid_lines.get())
             sigfigs_root.destroy()
 
-        sigfigs_slider = Scale(sigfigs_root, from_=6, to=50, orient='horizontal', length=200)
+        sigfigs_slider = Scale(sigfigs_root, from_=2, to=14, orient='horizontal', length=200)
         sigfigs_slider.set(self.number_of_sigfigs)
         sigfigs_slider.grid(column=0, row=0, columnspan=2)
 
@@ -599,6 +757,16 @@ class Main:
         sigfigs_root.bind('<Return>', ok_clicked_event)
         sigfigs_root.resizable(False, False)
         sigfigs_root.mainloop()
+
+    def change_to_fractions(self, menu):
+        if self.using_fractions:
+            self.using_fractions = False
+            menu.entryconfigure(4, label="Use Fractions for Results")
+        else:
+            self.using_fractions = True
+            menu.entryconfigure(4, label="Use Decimals for Results")
+
+        self.graph_line(self.graph_canvas, self.sub_plot, self.grid_lines.get())
 
     # COMPLETE
     def change_plot_title(self):
@@ -925,7 +1093,8 @@ class Main:
                 except ValueError:
                     pass
                 else:
-                    m, c, r = get_graph_data(x, y, initial=False, sigfigs=self.number_of_sigfigs)
+                    m, c, r = get_graph_data(x, y, initial=False,
+                                             sigfigs=self.number_of_sigfigs, fractions=self.using_fractions)
                     self.m_var.set(m), self.c_var.set(c), self.r_var.set(r)
 
                     line = self.give_me_a_straight_line_without_polyfit(x, y)
@@ -1112,7 +1281,17 @@ class ScrollFrame(Frame):
 
         # Allows the scroll wheel to be used on the scrollbar
         # TODO Allow the mouse to be anywhere inside the canvas to allow scrolling
-        self.canvas.bind('<MouseWheel>', lambda event: self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units"))
+        '''def _bound_to_mousewheel(event):
+            self.canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+        def _unbound_to_mousewheel(event):
+            self.canvas.unbind_all("<MouseWheel>")
+
+        def _on_mousewheel(event):
+            self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+        self.canvas.bind("<Enter>", func=_bound_to_mousewheel)
+        self.canvas.bind('<Leave>', func=_unbound_to_mousewheel)'''
 
         self.on_frame_configure(None)
 
@@ -1136,16 +1315,19 @@ class ScrollFrame(Frame):
 
 def start_up():
     # TODO Check that this works on other macs
-    r = requests.get("https://raw.githubusercontent.com/davidsamuelyoung/LinearPlot/master/latest_version.txt")
-    latest_version_text = r.text.split('\n')
-    latest_version = latest_version_text[0].replace("version=", "")
-    f = open("update_boot_tracker.txt", mode="r+")
-    lines = f.readlines()
-    f.close()
-    with open("update_boot_tracker.txt", mode="w") as f:
+    try:
+        r = requests.get("https://raw.githubusercontent.com/davidsamuelyoung/Linear-Plot/master/latest_version.txt")
+        latest_version_text = r.text.split('\n')
+        latest_version = latest_version_text[0].replace("version=", "")
+        f = open("update_boot_tracker.txt", mode="r")
+        lines = f.readlines()
+        f.close()
         declines = int(lines[1][9:])
+    except requests.ConnectionError:
+        Main()
+    else:
         if latest_version != current_version():
-            if declines % 2 == 0:
+            if declines % 2 == 0 or declines >= 8:
                 message = f"You currently have version: v{current_version()}\n" \
                           f"The latest version is: v{latest_version}\nChanges:\n"
                 # Limit the number of changes to 3
@@ -1159,20 +1341,22 @@ def start_up():
             else:
                 response = False
 
-            if response:
-                # TODO Update this to the actual repo
-                webbrowser.open("https://github.com/davidsamuelyoung/LinearPlot", new=2)
-                lines[0] = f"version={latest_version}\n"
-                lines[1] = "declines=0"
-                f.writelines(lines)
-                f.close()
-            else:
-                # Keeps track of the number of times the user has declined updating the program
-                lines[0] = f"version={latest_version}\n"
-                lines[1] = f"declines={declines + 1}"
-                f.writelines(lines)
-                f.close()
-                Main()
+            with open("update_boot_tracker.txt", mode="w") as f:
+                if response:
+                    webbrowser.open("https://github.com/davidsamuelyoung/Linear-Plot", new=2)
+                    lines[0] = f"version={latest_version}\n"
+                    lines[1] = "declines=0"
+                    f.writelines(lines)
+                    f.close()
+                else:
+                    # Keeps track of the number of times the user has declined updating the program
+                    lines[0] = f"version={latest_version}\n"
+                    lines[1] = f"declines={declines + 1}"
+                    f.writelines(lines)
+                    f.close()
+                    Main()
+        else:
+            Main()
 
 
 if __name__ == '__main__':
