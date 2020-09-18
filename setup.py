@@ -21,7 +21,7 @@ from setuptools import setup
 
 APP = ['LinearPlot.py']
 DATA_FILES = ["update_boot_tracker.txt"]
-OPTIONS = {"packages": ["PIL"], "iconfile": "LinearPlotIcon.icns"}
+OPTIONS = {"packages": ["PIL"], "iconfile": "LinearPlotIcon.icns", "plist": "Info.plist"}
 
 setup(
     name="Linear Plot",
