@@ -1,6 +1,6 @@
 setuptools~=50.3.0
 numpy~=1.19.2
 matplotlib~=3.0.3
-py2app~=0.22
+py2app~=0.21
 Pillow~=7.2.0
 requests~=2.24.0
