@@ -532,11 +532,9 @@ class Main:
                                 font='Helvetica 8')
         developed_label = Label(about_root, text="Developed by David Young",
                                 font="Helvetica 14")
-        licensed_label = Label(about_root, text="Licensed to UCT Physics Faculty", font="Helvetica 14")
 
         title_label.grid(row=0, column=0, sticky="n")
-        developed_label.grid(row=1, column=0, sticky="w", pady=(10, 1))
-        licensed_label.grid(row=2, column=0, sticky="w", pady=(1, 5))
+        developed_label.grid(row=1, column=0, sticky="w", pady=(10, 5))
         copyright_label.grid(row=3, column=0, sticky="s")
 
         about_root.resizable(False, False)
