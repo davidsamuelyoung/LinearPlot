@@ -115,6 +115,7 @@ def add_to_xy(a_dict):
 def linregress_custom(x_arr, y_arr):
     """
     Code copied from scipy.stats._stats_mstats_common.py
+    All credit for this section of code goes to the developers of scipy
 
     I copied this code because I have no need of the entire scipy package, only the one section for calculating
     information about the line.
@@ -893,17 +894,6 @@ class Main:
         else:
             messagebox.showwarning(message="Please complete the data points "
                                            "before trying to save an image of the graph.")
-
-    # INCOMPLETE
-    '''def save_results(self):
-        img = Image.new('RGB', (390, 300), color=(255, 255, 255))
-        drawer = ImageDraw.Draw(img)
-        font_name = self.global_font.get()
-        drawer_font = ImageFont.truetype(font=font_name)
-        drawer.text((10, 10), "Best Fit Values", fill=(0, 0, 0), font=drawer_font, size=20)
-        f = filedialog.asksaveasfile(mode="w", defaultextension=".png",
-                                     title="Save an image of your plot results", parent=self.root)
-        img.save(f.name)'''
 
     # COMPLETE
     def save_graph_data(self, file_type):
